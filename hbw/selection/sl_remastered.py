@@ -9,6 +9,7 @@ from typing import Tuple
 
 from columnflow.util import maybe_import
 from columnflow.selection import Selector, SelectionResult, selector
+from columnflow.columnar_util import set_ak_column, EMPTY_FLOAT
 
 from hbw.selection.common import masked_sorted_indices, pre_selection, post_selection, configure_selector
 from hbw.selection.lepton import lepton_definition
@@ -22,7 +23,7 @@ ak = maybe_import("awkward")
 
 @selector(
     uses={lepton_definition, "Electron.charge", "Muon.charge"},
-    produces={lepton_definition},
+    produces={lepton_definition, "Muon_pt2", "MuonTight_pt2", "MuonTight_eta2"},
 )
 def sl_lepton_selection(
         self: Selector,
@@ -32,7 +33,7 @@ def sl_lepton_selection(
 ) -> Tuple[ak.Array, SelectionResult]:
 
     events, lepton_results = self[lepton_definition](events, stats, **kwargs)
-
+    events = set_ak_column(events, "Muon_pt2", ak.fill_none(ak.firsts(events.Muon.pt), 0))
     # tau veto
     lepton_results.steps["VetoTau"] = events.cutflow.n_veto_tau == 0
 
@@ -76,6 +77,9 @@ def sl_lepton_selection(
     electron = events.Electron[veto_e_mask]
     muon = events.Muon[veto_mu_mask]
 
+    events = set_ak_column(events, "MuonTight_pt2", ak.fill_none(ak.firsts(muon.pt), -1))
+    events = set_ak_column(events, "MuonTight_eta2", ak.fill_none(ak.firsts(muon.eta), 100))
+
     # Create a temporary lepton collection
     lepton = ak.concatenate(
         [
@@ -111,6 +115,12 @@ def sl_lepton_selection(
     )
 
     for channel, trigger_columns in self.config_inst.x.trigger.items():
+
+        # save mask of every trigger
+        for trigger_column in trigger_columns:
+            trigger_column_mask = events.HLT[trigger_column]
+            lepton_results.steps[f"Trigger_{trigger_column}"] = trigger_column_mask
+
         # apply the "or" of all triggers of this channel
         trigger_mask = ak_any([events.HLT[trigger_column] for trigger_column in trigger_columns], axis=0)
         lepton_results.steps[f"Trigger_{channel}"] = trigger_mask
@@ -322,3 +332,14 @@ def sl1_init(self: Selector) -> None:
 
 
 sl1_no_btag = sl1.derive("sl1_no_btag", cls_dict={"n_btag": 0})
+
+sl1_trigger = sl1.derive("sl1_trigger_17", cls_dict={
+    "ele_pt": 14.,
+    "mu_pt": 10., #noetig?
+    "trigger": {
+        "mu": ["Mu50", 
+               "IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1", 
+               "PFMETNoMu110_PFMHTNoMu110_IDTight_FilterHF"
+               ],
+    },
+})

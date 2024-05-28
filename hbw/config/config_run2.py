@@ -572,7 +572,7 @@ def add_config(
     cfg.x.keep_columns = DotDict.wrap({
         "cf.MergeSelectionMasks": {
             "mc_weight", "normalization_weight", "process_id", "category_ids", "cutflow.*",
-            "HbbJet.n_subjets", "HbbJet.n_separated_jets", "HbbJet.max_dr_ak4",
+            "HbbJet.n_subjets", "HbbJet.n_separated_jets", "HbbJet.max_dr_ak4",'Muon_pt2', "MuonTight_pt2", "MuonTight_eta2"
         },
     })
 

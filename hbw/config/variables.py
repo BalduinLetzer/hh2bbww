@@ -390,6 +390,27 @@ def add_variables(config: od.Config) -> None:
         unit="GeV",
         x_title="$p_{T}$ of all muons",
     )
+    config.add_variable(
+        name="Muon_pt2",
+        expression="Muon_pt2",
+        binning=(40, 0, 400),
+        unit="GeV",
+        x_title="$Leading muon p_{T}$",
+    )
+    config.add_variable(
+        name="MuonTight_pt2",
+        expression="MuonTight_pt2",
+        binning=(40, 0, 400),
+        unit="GeV",
+        x_title="$Leading muon p_{T}$",
+    )
+    config.add_variable(
+        name="MuonTight_eta2",
+        expression="MuonTight_eta2",
+        binning=(40, 0, 400),
+        unit="GeV",
+        x_title="$muon eta$",
+    )
 
     # Jets (4 pt-leading jets)
     for i in range(4):
