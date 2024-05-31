@@ -391,13 +391,6 @@ def add_variables(config: od.Config) -> None:
         x_title="$p_{T}$ of all muons",
     )
     config.add_variable(
-        name="Muon_pt2",
-        expression="Muon_pt2",
-        binning=(40, 0, 400),
-        unit="GeV",
-        x_title="$Leading muon p_{T}$",
-    )
-    config.add_variable(
         name="MuonTight_pt2",
         expression="MuonTight_pt2",
         binning=(40, 0, 400),
@@ -410,6 +403,20 @@ def add_variables(config: od.Config) -> None:
         binning=(40, 0, 400),
         unit="GeV",
         x_title="$muon eta$",
+    )
+    config.add_variable(
+        name="EleTight_pt2",
+        expression="EleTight_pt2",
+        binning=(40, 0, 400),
+        unit="GeV",
+        x_title="$Leading electron p_{t}$",
+    )
+    config.add_variable(
+        name="EleTight_eta2",
+        expression="EleTight_eta2",
+        binning=(40, 0, 400),
+        unit="GeV",
+        x_title="$Electron eta$",
     )
 
     # Jets (4 pt-leading jets)

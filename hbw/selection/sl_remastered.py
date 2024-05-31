@@ -77,6 +77,12 @@ def sl_lepton_selection(
     electron = events.Electron[veto_e_mask]
     muon = events.Muon[veto_mu_mask]
 
+    muon_tight2_mask = veto_mu_mask
+
+    genids = events.GenPart.pdgId
+    gen_mu_mask = ak.any(abs(genids) == 13, axis=1)
+    lepton_results.steps["GenMuMask"] = gen_mu_mask 
+
     events = set_ak_column(events, "MuonTight_pt2", ak.fill_none(ak.firsts(muon.pt), -1))
     events = set_ak_column(events, "MuonTight_eta2", ak.fill_none(ak.firsts(muon.eta), 100))
 
@@ -339,7 +345,8 @@ sl1_trigger = sl1.derive("sl1_trigger_17", cls_dict={
     "trigger": {
         "mu": ["Mu50", 
                "IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1", 
-               "PFMETNoMu110_PFMHTNoMu110_IDTight_FilterHF"
+               "PFMETNoMu110_PFMHTNoMu110_IDTight_FilterHF",
+               "IsoMu24"
                ],
     },
 })

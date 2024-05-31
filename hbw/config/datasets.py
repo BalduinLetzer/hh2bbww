@@ -43,6 +43,9 @@ data_mu = {
         "data_mu_f",
         "data_mu_g",
     ],
+    "2024": [
+        # empty for now
+    ],
 }
 
 data_e = {
@@ -52,6 +55,9 @@ data_e = {
         "data_e_d",
         "data_e_e",
         "data_e_f",
+    ],
+    "2024": [
+        # empty for now
     ],
 }
 
@@ -64,6 +70,9 @@ data_egamma = {
         "data_egamma_e",
         "data_egamma_f",
         "data_egamma_g",
+    ],
+    "2024": [
+        # empty for now
     ],
 }
 
@@ -95,6 +104,9 @@ tt = {
         "tt_sl_powheg",
         "tt_dl_powheg",
         "tt_fh_powheg",
+    ],
+    "2024": [
+        # empty for now
     ],
 }
 
@@ -131,6 +143,9 @@ st = {
         # "st_schannel_lep_amcatnlo",
         # "st_schannel_had_amcatnlo",
     ],
+    "2024": [
+        # empty for now
+    ],
 }
 
 w_lnu = {
@@ -150,6 +165,9 @@ w_lnu = {
     "2022preEE": [
         "w_lnu_amcatnlo",
     ],
+    "2024": [
+        # empty for now
+    ],
 }
 
 dy_lep = {
@@ -168,6 +186,9 @@ dy_lep = {
     ],
     "2022preEE": [
         "dy_lep_m50_madgraph",
+    ],
+    "2024": [
+        # empty for now
     ],
 }
 
@@ -214,6 +235,9 @@ qcd_mu = {
         "qcd_mu_pt800to1000_pythia",
         "qcd_mu_pt1000_pythia",
     ],
+    "2024": [
+        # empty for now
+    ],
 }
 
 qcd_em = {
@@ -245,6 +269,9 @@ qcd_em = {
         "qcd_em_pt170to300_pythia",
         "qcd_em_pt300toInf_pythia",
     ],
+    "2024": [
+        # empty for now
+    ],
 }
 
 qcd_bctoe = {
@@ -259,6 +286,9 @@ qcd_bctoe = {
     "2022postEE": [
         # empty for now
     ],
+    "2024": [
+        # empty for now
+    ],
 }
 
 single_h = {
@@ -266,6 +296,9 @@ single_h = {
         # empty for now
     ],
     "2022postEE": [
+        # empty for now
+    ],
+    "2024": [
         # empty for now
     ],
 }
@@ -294,6 +327,9 @@ ttv = {
     "2022postEE": [
         # empty for now
     ],
+    "2024": [
+        # empty for now
+    ],
 }
 
 ggHH_sl_hbbhww = {
@@ -307,6 +343,9 @@ ggHH_sl_hbbhww = {
         "ggHH_kl_1_kt_1_sl_hbbhww_powheg",
     ],
     "2022postEE": [
+        "ggHH_kl_1_kt_1_sl_hbbhww_powheg",
+    ],
+    "2024": [
         "ggHH_kl_1_kt_1_sl_hbbhww_powheg",
     ],
 }
@@ -324,6 +363,9 @@ ggHH_dl_hbbhww = {
     "2022postEE": [
         "ggHH_kl_1_kt_1_dl_hbbhww_powheg",
     ],
+    "2024": [
+        # empty for now
+    ],
 }
 
 qqHH_sl_hbbhww = {
@@ -337,6 +379,9 @@ qqHH_sl_hbbhww = {
         "qqHH_CV_1p5_C2V_1_kl_1_sl_hbbhww_madgraph",
     ],
     "2022postEE": [
+        # empty for now
+    ],
+    "2024": [
         # empty for now
     ],
 }
@@ -354,6 +399,9 @@ qqHH_dl_hbbhww = {
     "2022postEE": [
         # empty for now
     ],
+    "2024": [
+        # empty for now
+    ],
 }
 
 graviton_hh_ggf_bbww = {
@@ -365,6 +413,9 @@ graviton_hh_ggf_bbww = {
     "2022postEE": [
         # empty for now
     ],
+    "2024": [
+        # empty for now
+    ],
 }
 radion_hh_ggf_bbww = {
     "2017": [f"radion_hh_ggf_bbww_m{mass}_madgraph" for mass in [
@@ -373,6 +424,9 @@ radion_hh_ggf_bbww = {
         1250, 1500, 1750, 2000, 2500, 3000,
     ]],
     "2022postEE": [
+    ],
+    "2024": [
+        # empty for now
     ],
 }
 

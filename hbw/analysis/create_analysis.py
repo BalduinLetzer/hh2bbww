@@ -64,6 +64,7 @@ def create_hbw_analysis(
     import cmsdb.campaigns.run2_2017_nano_v9
     import cmsdb.campaigns.run3_2022_preEE_nano_v12
     import cmsdb.campaigns.run3_2022_postEE_nano_v12
+    import cmsdb.campaigns.run3_2024_nano_v8
 
     campaign_run2_2017_nano_v9 = cmsdb.campaigns.run2_2017_nano_v9.campaign_run2_2017_nano_v9
     campaign_run3_2022_preEE_nano_v12 = cmsdb.campaigns.run3_2022_preEE_nano_v12.campaign_run3_2022_preEE_nano_v12
@@ -71,6 +72,8 @@ def create_hbw_analysis(
 
     campaign_run3_2022_postEE_nano_v12 = cmsdb.campaigns.run3_2022_postEE_nano_v12.campaign_run3_2022_postEE_nano_v12
     campaign_run3_2022_postEE_nano_v12.x.EE = "post"
+
+    campaign_run3_2024_nano_v8 = cmsdb.campaigns.run3_2024_nano_v8.campaign_run3_2024_nano_v8
 
     # 2017
     c17 = add_config(  # noqa
@@ -119,6 +122,23 @@ def create_hbw_analysis(
         campaign_run3_2022_postEE_nano_v12.copy(),
         config_name="l22post",
         config_id=2211,
+        limit_dataset_files=2,
+        add_dataset_extensions=False,
+    )
+
+    # 2024 Trigger
+    c24trig = add_config(  # noqa
+        analysis_inst,
+        campaign_run3_2024_nano_v8.copy(),
+        config_name="c24trig",
+        config_id=2410,
+        add_dataset_extensions=False,
+    )
+    l24trig = add_config(  # noqa
+        analysis_inst,
+        campaign_run3_2024_nano_v8.copy(),
+        config_name="l24trig",
+        config_id=2411,
         limit_dataset_files=2,
         add_dataset_extensions=False,
     )

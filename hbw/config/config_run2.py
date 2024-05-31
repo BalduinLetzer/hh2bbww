@@ -37,7 +37,7 @@ def add_config(
     add_dataset_extensions: bool = False,
 ) -> od.Config:
     # validations
-    assert campaign.x.year in [2016, 2017, 2018, 2022]
+    assert campaign.x.year in [2016, 2017, 2018, 2022, 2024]
     if campaign.x.year == 2016:
         assert campaign.x.vfp in ["pre", "post"]
     if campaign.x.year == 2022:
@@ -52,7 +52,7 @@ def add_config(
     elif year == 2022:
         corr_postfix = f"{campaign.x.EE}EE"
 
-    if year != 2017 and year != 2022:
+    if year != 2017 and year != 2022 and year != 2024:
         raise NotImplementedError("For now, only 2017 and 2022 campaign is implemented")
 
     # create a config by passing the campaign, so id and name will be identical
@@ -61,7 +61,7 @@ def add_config(
     # add some important tags to the config
     cfg.x.cpn_tag = f"{year}{corr_postfix}"
 
-    if year in (2022, 2023):
+    if year in (2022, 2023, 2024):
         cfg.x.run = 3
     elif year in (2016, 2017, 2018):
         cfg.x.run = 2
@@ -124,6 +124,10 @@ def add_config(
                 "lumi_13TeV_2022": 0.01j,
                 "lumi_13TeV_correlated": 0.006j,
             })
+    elif year == 2024:
+        cfg.x.luminosity = Number(2024, {
+            "lumi_13TeV_2024": 0.2024j, #WONG TODO
+        })
     else:
         raise NotImplementedError(f"Luminosity for year {year} is not defined.")
 
@@ -146,13 +150,16 @@ def add_config(
     if cfg.x.run == 2:
         jerc_campaign = f"Summer19UL{year2}{jerc_postfix}"
         jet_type = "AK4PFchs"
-    elif cfg.x.run == 3:
+    elif cfg.x.run == 3 and year2!=24:
         jerc_campaign = f"Summer{year2}{jerc_postfix}_22Sep2023"
+        jet_type = "AK4PFPuppi"
+    else:
+        jerc_campaign = f"Summer22{jerc_postfix}_22Sep2023"
         jet_type = "AK4PFPuppi"
 
     cfg.x.jec = DotDict.wrap({
         "campaign": jerc_campaign,
-        "version": {2016: "V7", 2017: "V5", 2018: "V5", 2022: "V2"}[year],
+        "version": {2016: "V7", 2017: "V5", 2018: "V5", 2022: "V2", 2024: "V2"}[year], #WONG TODO
         "jet_type": jet_type,
         "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
         "levels_for_type1_met": ["L1FastJet"],
@@ -221,7 +228,7 @@ def add_config(
     # TODO: get jerc working for Run3
     cfg.x.jer = DotDict.wrap({
         "campaign": jerc_campaign,
-        "version": {2016: "JRV3", 2017: "JRV2", 2018: "JRV2", 2022: "JRV1"}[year],
+        "version": {2016: "JRV3", 2017: "JRV2", 2018: "JRV2", 2022: "JRV1", 2024: "JRV1"}[year], #WONG TODO
         "jet_type": jet_type,
     })
 
@@ -276,9 +283,9 @@ def add_config(
     # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL17?rev=17
     cfg.x.btag_working_points = DotDict.wrap({
         "deepjet": {
-            "loose": {"2016preVFP": 0.0508, "2016postVFP": 0.0480, "2017": 0.0532, "2018": 0.0490, "2022preEE": 0.0583, "2022postEE": 0.0614, "2023": 0.0479, "2023BPix": 0.048}.get(cfg.x.cpn_tag, 0.0),  # noqa
-            "medium": {"2016preVFP": 0.2598, "2016postVFP": 0.2489, "2017": 0.3040, "2018": 0.2783, "2022preEE": 0.3086, "2022postEE": 0.3196, "2023": 0.2431, "2023BPix": 0.2435}.get(cfg.x.cpn_tag, 0.0),  # noqa
-            "tight": {"2016preVFP": 0.6502, "2016postVFP": 0.6377, "2017": 0.7476, "2018": 0.7100, "2022preEE": 0.7183, "2022postEE": 0.73, "2023": 0.6553, "2023BPix": 0.6563}.get(cfg.x.cpn_tag, 0.0),  # noqa
+            "loose": {"2016preVFP": 0.0508, "2016postVFP": 0.0480, "2017": 0.0532, "2018": 0.0490, "2022preEE": 0.0583, "2022postEE": 0.0614, "2023": 0.0479, "2023BPix": 0.048, "2024": 0.048}.get(cfg.x.cpn_tag, 0.0),  # noqa WONG TODO
+            "medium": {"2016preVFP": 0.2598, "2016postVFP": 0.2489, "2017": 0.3040, "2018": 0.2783, "2022preEE": 0.3086, "2022postEE": 0.3196, "2023": 0.2431, "2023BPix": 0.2435, "2024": 0.2435}.get(cfg.x.cpn_tag, 0.0),  # noqa WONG TODO
+            "tight": {"2016preVFP": 0.6502, "2016postVFP": 0.6377, "2017": 0.7476, "2018": 0.7100, "2022preEE": 0.7183, "2022postEE": 0.73, "2023": 0.6553, "2023BPix": 0.6563, "2024": 0.6563}.get(cfg.x.cpn_tag, 0.0),  # noqa WONG TODO
         },
         "deepcsv": {
             "loose": {"2016preVFP": 0.2027, "2016postVFP": 0.1918, "2017": 0.1355, "2018": 0.1208}.get(cfg.x.cpn_tag, 0.0),  # noqa
@@ -286,9 +293,9 @@ def add_config(
             "tight": {"2016preVFP": 0.8819, "2016postVFP": 0.8767, "2017": 0.7738, "2018": 0.7665}.get(cfg.x.cpn_tag, 0.0),  # noqa
         },
         "particlenet": {
-            "loose": {"2022preEE": 0.047, "2022postEE": 0.0499, "2023": 0.0358, "2023BPix": 0.359}.get(cfg.x.cpn_tag, 0.0),  # noqa
-            "medium": {"2022preEE": 0.245, "2022postEE": 0.2605, "2023": 0.1917, "2023BPix": 0.1919}.get(cfg.x.cpn_tag, 0.0),  # noqa
-            "tight": {"2022preEE": 0.6734, "2022postEE": 0.6915, "2023": 0.6172, "2023BPix": 0.6133}.get(cfg.x.cpn_tag, 0.0),  # noqa
+            "loose": {"2022preEE": 0.047, "2022postEE": 0.0499, "2023": 0.0358, "2023BPix": 0.359, "2024": 0.359}.get(cfg.x.cpn_tag, 0.0),  # noqa WONG TODO
+            "medium": {"2022preEE": 0.245, "2022postEE": 0.2605, "2023": 0.1917, "2023BPix": 0.1919, "2024": 0.1919}.get(cfg.x.cpn_tag, 0.0),  # noqa WONG TODO
+            "tight": {"2022preEE": 0.6734, "2022postEE": 0.6915, "2023": 0.6172, "2023BPix": 0.6133, "2024": 0.6133}.get(cfg.x.cpn_tag, 0.0),  # noqa WONG TODO
         },
     })
 
@@ -491,8 +498,10 @@ def add_config(
     if cfg.x.run == 2:
         # json_mirror = "/afs/cern.ch/user/m/mrieger/public/mirrors/jsonpog-integration-9ea86c4c"
         corr_tag = f"{cfg.x.cpn_tag}_UL"
-    elif cfg.x.run == 3:
+    elif cfg.x.run == 3 and year!=2024:
         corr_tag = f"{year}_Summer22{jerc_postfix}"
+    else:
+        corr_tag = f"2022_Summer22{jerc_postfix}" #WONG TODO
 
     cfg.x.external_files = DotDict.wrap({
         # pileup weight corrections
@@ -536,7 +545,7 @@ def add_config(
 
     # external files with more complex year dependence
     # TODO: generalize to different years
-    if year not in (2017, 2022):
+    if year not in (2017, 2022, 2024):
         raise NotImplementedError("TODO: generalize external files to different years than 2017")
 
     if year == 2017:
@@ -563,6 +572,14 @@ def add_config(
                 "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
             },
         }))
+    elif year == 2024: #WONG TODO
+        cfg.x.external_files.update(DotDict.wrap({
+            # files from https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile
+            "lumi": {
+                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_379075_Golden.json", "v1"),  # noqa
+                "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
+            },
+        }))
     else:
         raise NotImplementedError(f"No lumi and pu files provided for year {year}")
 
@@ -572,7 +589,8 @@ def add_config(
     cfg.x.keep_columns = DotDict.wrap({
         "cf.MergeSelectionMasks": {
             "mc_weight", "normalization_weight", "process_id", "category_ids", "cutflow.*",
-            "HbbJet.n_subjets", "HbbJet.n_separated_jets", "HbbJet.max_dr_ak4",'Muon_pt2', "MuonTight_pt2", "MuonTight_eta2"
+            "HbbJet.n_subjets", "HbbJet.n_separated_jets", "HbbJet.max_dr_ak4", 
+            "EleTight_pt2", "EleTight_eta2", "MuonTight_pt2", "MuonTight_eta2"
         },
     })
 
