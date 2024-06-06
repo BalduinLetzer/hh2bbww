@@ -72,9 +72,9 @@ def jet_selection(
     )
 
     # apply loose Jet puId to jets with pt below 50 GeV (not in Run3 samples so skip this for now)
-    if self.config_inst.x.run == 2:
-        jet_pu_mask = (events.Jet.puId >= 4) | (events.Jet.pt > 50)
-        jet_mask = jet_mask & jet_pu_mask
+    #if self.config_inst.x.run == 2:
+    #    jet_pu_mask = (events.Jet.puId >= 4) | (events.Jet.pt > 50)
+    #    jet_mask = jet_mask & jet_pu_mask TODO WONG
 
     # get the jet indices for pt-sorting of jets
     jet_indices = masked_sorted_indices(jet_mask, events.Jet.pt)
@@ -104,6 +104,13 @@ def jet_selection(
     # define lightjets as all non b-jets, pt-sorted
     b_idx = ak.fill_none(ak.pad_none(bjet_indices, 2), -1)
     lightjet_indices = jet_indices[(jet_indices != b_idx[:, 0]) & (jet_indices != b_idx[:, 1])]
+
+    # WONG TODO Jet rewuirements for triggerstudies
+    trig_jet_mask_clean = (events.Jet.eta < 2.4) & (events.Jet.jetId == 6)
+    trig_jet_clean = events.Jet[trig_jet_mask_clean]
+    
+    steps["trig_jet"] = ak.sum(trig_jet_clean.pt > 25, axis=1) >= 3
+
 
     # build and return selection results plus new columns
     return events, SelectionResult(

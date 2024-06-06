@@ -9,6 +9,7 @@ from typing import Tuple
 
 from columnflow.util import maybe_import
 from columnflow.selection import Selector, SelectionResult, selector
+from columnflow.columnar_util import set_ak_column, EMPTY_FLOAT
 
 from hbw.selection.common import masked_sorted_indices, pre_selection, post_selection
 from hbw.selection.lepton import lepton_definition
@@ -20,8 +21,10 @@ ak = maybe_import("awkward")
 
 
 @selector(
-    uses={lepton_definition, "Electron.charge", "Muon.charge"},
-    produces={lepton_definition},
+    uses={lepton_definition, "Electron.charge", "Muon.charge", "Muon.pfRelIso03_all", "Electron.mvaIso_WP80"},
+    produces={lepton_definition,
+              "trig_mu_pt", "trig_mu_eta", "trig_ele_pt", "trig_ele_eta"
+              },
     e_pt=None, mu_pt=None, trigger=None,
 )
 def sl_lepton_selection(
@@ -111,6 +114,10 @@ def sl_lepton_selection(
     )
 
     for channel, trigger_columns in self.config_inst.x.trigger.items():
+        # WONG TODO Triggerstudies, save mask of every Trigger
+        for trigger_column in trigger_columns:
+            lepton_results.steps[f"Trigger_{channel}_{trigger_column}"] = events.HLT[trigger_column]
+
         # apply the "or" of all triggers of this channel
         trigger_mask = ak.any([events.HLT[trigger_column] for trigger_column in trigger_columns], axis=0)
         lepton_results.steps[f"Trigger_{channel}"] = trigger_mask
@@ -130,6 +137,41 @@ def sl_lepton_selection(
         lepton_results.steps[f"TriggerAndLep_{channel}"]
         for channel in self.config_inst.x.trigger.keys()
     ], axis=0)
+
+    # WONG TODO Triggerstudies
+    trig_muon = events.Muon
+    trig_electron = events.Electron
+
+    mu_cleaning_mask = (
+        (trig_muon.eta < 2.4) &
+        (trig_muon.tightId) &
+        (trig_muon.pfRelIso03_all < 0.15)
+    )
+    ele_cleaning_mask = (
+        (trig_electron.eta < 2.4) &
+        (trig_electron.cutBased == 4) &
+        (trig_electron.mvaIso_WP80)
+    )
+
+    trig_muon_clean = events.Muon[mu_cleaning_mask]
+    trig_electron_clean = events.Electron[ele_cleaning_mask]
+
+    events = set_ak_column(events, "trig_mu_pt", ak.fill_none(ak.firsts(trig_muon_clean.pt), -1))
+    events = set_ak_column(events, "trig_mu_eta", ak.fill_none(ak.firsts(trig_muon_clean.eta), -100))
+    events = set_ak_column(events, "trig_ele_pt", ak.fill_none(ak.firsts(trig_electron_clean.pt), -1))
+    events = set_ak_column(events, "trig_ele_eta", ak.fill_none(ak.firsts(trig_electron_clean.eta), -100))
+
+    gen_Ids = events.GenPart.pdgId
+    gen_mu_mask = ak.any(abs(gen_Ids[events.GenPart.hasFlags("isHardProcess")]) == 13, axis=1)
+    gen_ele_mask = ak.any(abs(gen_Ids[events.GenPart.hasFlags("isHardProcess")]) == 11, axis=1)
+
+    mu_presel_mask = ak.sum(trig_muon_clean.pt > 10, axis=1) >= 1
+    ele_presel_mask = ak.sum(trig_electron_clean.pt > 14, axis=1) >= 1
+    
+    trig_mu_mask = gen_mu_mask & mu_presel_mask
+    trig_ele_mask = gen_ele_mask & ele_presel_mask
+    lepton_results.steps["TrigMuMask"] = trig_mu_mask
+    lepton_results.steps["TrigEleMask"] = trig_ele_mask
 
     return events, lepton_results
 
@@ -285,3 +327,16 @@ def sl1_init(self: Selector) -> None:
 
     self.uses.add(event_weights_to_normalize)
     self.produces.add(event_weights_to_normalize)
+
+sl1_trigger = sl1.derive("sl1_trigger_17", cls_dict={
+    "trigger": {
+        "mu": [
+            "Mu12_IsoVVL_PFHT150_PNetBTag_0p53","IsoMu24", "Mu50", 
+            "PFHT280_QuadPFJet30_PNet2BTagMean0p55", "PFMETNoMu110_PFMHTNoMu110_IDTight_FilterHF",
+        ],
+        "ele": [
+            "Ele14_eta2p5_WPTight_Gsf_HT200_PNetBTag_0p53", "Ele28_eta2p1_WPTight_Gsf_HT150", "Ele30_WPTight_Gsf",
+            "PFHT280_QuadPFJet30_PNet2BTagMean0p55", "Ele15_IsoVVVL_PFHT450",
+        ],
+    },
+})

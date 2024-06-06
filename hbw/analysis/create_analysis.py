@@ -122,5 +122,21 @@ def create_hbw_analysis(
         limit_dataset_files=2,
         add_dataset_extensions=False,
     )
+    from hbw.config.trigger_config_run2 import add_config
+
+        # 2017
+    c17_trig = add_config(  # noqa
+        analysis_inst,
+        campaign_run2_2017_nano_v9.copy(),
+        config_name="c17_trig",
+        config_id=1720,
+    )
+    l17_trig = add_config(  # noqa
+        analysis_inst,
+        campaign_run2_2017_nano_v9.copy(),
+        config_name="l17_trig",
+        config_id=1721,
+        limit_dataset_files=1,
+    )
 
     return analysis_inst

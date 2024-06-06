@@ -552,3 +552,30 @@ def add_variables(config: od.Config) -> None:
         binning=(40, -3.2, 3.2),
         x_title=r"MET $\phi$",
     )
+
+    # WONG TODO add variables we want to use for triggerstudies
+    config.add_variable(
+        name="trig_mu_pt",
+        binning=(40, 0., 400.),
+        x_title=r"Leading offline muon $p_{T}$",
+    )
+    config.add_variable(
+        name="trig_mu_eta",
+        binning=(40, 0., 400.),
+        x_title=r"Leading offline muon $/eta$",
+    )
+    config.add_variable(
+        name="trig_ele_pt",
+        binning=(40, 0., 400.),
+        x_title=r"Leading offline electron $p_{T}$",
+    )
+    config.add_variable(
+        name="trig_ele_eta",
+        binning=(40, 0., 400.),
+        x_title=r"Leading offline electron $/eta$$",
+    )
+    config.add_variable(
+        name="trig_HT",
+        binning=(40, 0., 400.),
+        x_title=r"HT",
+    )

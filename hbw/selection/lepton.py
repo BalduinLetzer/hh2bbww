@@ -42,7 +42,7 @@ logger = law.logger.get_logger(__name__)
             "Electron.mvaIso_WP90", "Electron.mvaFall17V2Iso_WP90",  # columns that differ in Run 2 and 3
         }) | four_vec("Muon", {
             "dxy", "dz", "looseId", "pfIsoId",  # Muon Preselection
-            "jetRelIso",  # cone-pt
+            "jetRelIso", # cone-pt
             "jetIdx",  # Fakeable Muon
         }) | four_vec("Tau", {
             "dz", "idDeepTau2017v2p1VSe", "idDeepTau2017v2p1VSmu", "idDeepTau2017v2p1VSjet",
@@ -220,6 +220,7 @@ def lepton_definition_setup(
         "LoosePFIso": lambda muon: (muon.pfIsoId >= 2),
         "MediumPFIso": lambda muon: (muon.pfIsoId >= 3),
         "TightPFIso": lambda muon: (muon.pfIsoId >= 4),
+        "pfRelIso03_all": lambda muon: muon.pfRelIso03_all,
     }[self.muon_iso]
 
     self.electron_id_req = {
@@ -247,6 +248,7 @@ def lepton_definition_init(self: Selector) -> None:
         "MediumID": "mediumId",
         "TightID": "tightId",
         "MediumPromptId": "mediumPromptId",
+        "pfRelIso03_all": "pfRelIso03_all"
     }[self.muon_id]
     self.uses.add(f"Muon.{muon_id_column}")
 
