@@ -428,7 +428,7 @@ def add_config(
         "cf.MergeSelectionMasks": {
             "mc_weight", "normalization_weight", "process_id", "category_ids", "cutflow.*",
             "HbbJet.n_subjets", "HbbJet.n_separated_jets", "HbbJet.max_dr_ak4",
-            "trig_mu_pt", "trig_mu_eta", "trig_ele_pt", "trig_ele_eta", "trig_HT",
+            "trig_mu_pt", "trig_mu_eta", "trig_ele_pt", "trig_ele_eta", "trig_HT", "trig_mHH",
         },
     })
 

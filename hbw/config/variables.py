@@ -606,10 +606,15 @@ def add_variables(config: od.Config) -> None:
     config.add_variable(
         name="trig_ele_eta",
         binning=(40, 0., 400.),
-        x_title=r"Leading offline electron $/eta$$",
+        x_title=r"Leading offline electron $/eta$",
     )
     config.add_variable(
         name="trig_HT",
         binning=(40, 0., 400.),
         x_title=r"HT",
+    )
+    config.add_variable(
+        name="trig_mHH",
+        binning=(40, 0., 400.),
+        x_title=r"$m_{HH}",
     )

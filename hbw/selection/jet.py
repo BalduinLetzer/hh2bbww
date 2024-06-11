@@ -113,7 +113,7 @@ def jet_selection(
     lightjet_indices = jet_indices[(jet_indices != b_idx[:, 0]) & (jet_indices != b_idx[:, 1])]
 
     # WONG TODO Jet rewuirements for triggerstudies
-    trig_jet_mask_clean = (events.Jet.eta < 2.4) & (events.Jet.jetId == 6)
+    trig_jet_mask_clean = (abs(events.Jet.eta) < 2.4) & (events.Jet.jetId == 6)
     trig_jet_clean = events.Jet[trig_jet_mask_clean]
     
     steps["trig_jet"] = ak.sum(trig_jet_clean.pt > 25, axis=1) >= 3

@@ -3,7 +3,6 @@
 """
 Selection modules for HH -> bbWW(qqlnu).
 """
-
 from collections import defaultdict
 from typing import Tuple
 
@@ -144,12 +143,12 @@ def sl_lepton_selection(
     trig_electron = events.Electron
 
     mu_cleaning_mask = (
-        (trig_muon.eta < 2.4) &
+        (abs(trig_muon.eta) < 2.4) &
         (trig_muon.tightId) &
         (trig_muon.pfRelIso03_all < 0.15)
     )
     ele_cleaning_mask = (
-        (trig_electron.eta < 2.4) &
+        ((trig_electron.eta) < 2.4) &
         (trig_electron.cutBased == 4) &
         (trig_electron.mvaIso_WP80)
     )
@@ -163,11 +162,20 @@ def sl_lepton_selection(
     events = set_ak_column(events, "trig_ele_eta", ak.fill_none(ak.firsts(trig_electron_clean.eta), -100))
 
     gen_Ids = events.GenPart.pdgId
-    gen_mu_mask = ak.any(abs(gen_Ids[events.GenPart.hasFlags("isHardProcess")]) == 13, axis=1)
-    gen_ele_mask = ak.any(abs(gen_Ids[events.GenPart.hasFlags("isHardProcess")]) == 11, axis=1)
+    #gen_mu_mask = ak.any(abs(gen_Ids[events.GenPart.hasFlags("isHardProcess")]) == 13, axis=1)
+    #gen_ele_mask = ak.any(abs(gen_Ids[events.GenPart.hasFlags("isHardProcess")]) == 11, axis=1)
+
+    gen_mu_mask = ak.any(abs(gen_Ids) == 13, axis=1)
+    gen_ele_mask = ak.any(abs(gen_Ids) == 11, axis=1)
+
+    lepton_results.steps["TriggerMuGenMask"] = gen_mu_mask
+    lepton_results.steps["TriggerEleGenMask"] = gen_ele_mask
 
     mu_presel_mask = ak.sum(trig_muon_clean.pt > 10, axis=1) >= 1
-    ele_presel_mask = ak.sum(trig_electron_clean.pt > 14, axis=1) >= 1
+    ele_presel_mask = ak.sum(trig_electron_clean.pt > 10, axis=1) >= 1
+
+    lepton_results.steps["TriggerMuPreselMask"] = mu_presel_mask
+    lepton_results.steps["TriggerElePreselMask"] = ele_presel_mask
     
     trig_mu_mask = gen_mu_mask & mu_presel_mask
     trig_ele_mask = gen_ele_mask & ele_presel_mask
@@ -367,12 +375,14 @@ def sl1_init(self: Selector) -> None:
 sl1_no_btag = sl1.derive("sl1_no_btag", cls_dict={"n_btag": 0})
 
 sl1_trigger = sl1.derive("sl1_trigger_17", cls_dict={
+    "b_tagger": "deepjet",
+    "btag_wp": "medium",
     "trigger": {
         "mu": [
             "Mu12_IsoVVL_PFHT150_PNetBTag_0p53","IsoMu24", "Mu50", 
             "PFHT280_QuadPFJet30_PNet2BTagMean0p55", "PFMETNoMu110_PFMHTNoMu110_IDTight_FilterHF",
         ],
-        "ele": [
+        "e": [
             "Ele14_eta2p5_WPTight_Gsf_HT200_PNetBTag_0p53", "Ele28_eta2p1_WPTight_Gsf_HT150", "Ele30_WPTight_Gsf",
             "PFHT280_QuadPFJet30_PNet2BTagMean0p55", "Ele15_IsoVVVL_PFHT450",
         ],

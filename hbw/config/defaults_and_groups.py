@@ -7,7 +7,7 @@ from columnflow.tasks.framework.base import RESOLVE_DEFAULT
 
 
 def default_calibrator(container):
-    return "with_b_reg"
+    return "skip_jecunc"
 
 
 def default_selector(container):
