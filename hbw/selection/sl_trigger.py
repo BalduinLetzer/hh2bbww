@@ -23,10 +23,11 @@ ak = maybe_import("awkward")
 @selector(
     uses=(four_vec({"Muon", "Electron", "Jet"})) | {
         "Muon.tightId", "Muon.pfRelIso03_all", "Electron.cutBased", "Electron.mvaIso_WP80",
-        "Jet.jetId", "GenPart.statusFlags", "GenPart.pdgId", "GenPart.genPartIdxMother", pre_selection, post_selection
+        "Jet.jetId", "GenPart.*",
+        pre_selection, post_selection,
     },
-    produces={"trig_mu_pt", "trig_mu_eta", "trig_ele_pt", "trig_ele_eta", "trig_HT", #"trig_mHH",
-              pre_selection, post_selection,
+    produces={"trig_mu_pt", "trig_mu_eta", "trig_ele_pt", "trig_ele_eta", "trig_HT", "trig_mHH",
+              pre_selection, post_selection, 
               "Muon.is_tight", "Electron.is_tight",
               },
     trigger={
@@ -137,18 +138,16 @@ def sl_trigger(
         results.steps[f"nBjet{self.config_inst.x.n_btag}"] = events.cutflow.n_btag >= self.config_inst.x.n_btag
 
     results.steps["SR_mu"] = (results.steps["TrigMuMask"]) & (results.steps["trig_jet"]) & (results.steps["nBjet1"])
-    results.steps["SR_ele"] = (results.steps["TrigMuMask"]) & (results.steps["trig_jet"]) & (results.steps["nBjet1"])
+    results.steps["SR_ele"] = (results.steps["TrigEleMask"]) & (results.steps["trig_jet"]) & (results.steps["nBjet1"])
     results.steps["SR"] = (results.steps["SR_mu"]) | (results.steps["SR_ele"])
 
     # Higgs mass
-    #gen_part_select = events.GenPart[results.steps["SR"]]
-    #higgs_mask = (gen_part_select.pdgId == 25) & (gen_part_select.hasFlags("isHardProcess"))
-    #gen_part_higgs = ak.with_name(gen_part_select, "Momentum4D")
-    #gen_h1 = ak.Array(gen_part_higgs[higgs_mask][:,0])
-    #gen_h2 = ak.Array(gen_part_higgs[higgs_mask][:,1])
-    #from hbw.util import debugger; debugger()
-    #trig_mhh = (gen_h1 + gen_h2).mass
-    #events = set_ak_column(events, "trig_mHH", trig_mhh)
+    gen_part_select = events.GenPart
+    higgs_mask = (gen_part_select.pdgId == 25) & (gen_part_select.hasFlags("isHardProcess"))
+    gen_h1 = gen_part_select[higgs_mask][:,0]
+    gen_h2 = gen_part_select[higgs_mask][:,1]
+    trig_mhh = (gen_h1 + gen_h2).mass
+    events = set_ak_column(events, "trig_mHH", trig_mhh)
 
     #Horribly WONG TODO brute force adding masks to avoid errors
     results.event = mu_presel_mask
