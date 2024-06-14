@@ -44,7 +44,7 @@ logger = law.logger.get_logger(__name__)
         }
     ),
     produces={
-        "Muon.is_tight", "Electron.is_tight",
+        "Muon.is_tight", "Electron.is_tight", "tight_muon_pt",
     },
     # TODO: we would need to move these attributes to the main Selector init to make this configurable
     muon_id="TightId",  # options: MediumId, MediumPromptId, TightId
@@ -114,6 +114,9 @@ def lepton_definition(
         mu_mask_fakeable &
         self.muon_iso_req(muon)
     )
+
+    trigger_muons = events.Muon[mu_mask_tight]
+    events = set_ak_column(events, "tight_muon_pt", ak.fill_none(ak.firsts(trigger_muons.pt),0))
 
     # tau veto mask (only needed in SL?)
     # TODO: update criteria

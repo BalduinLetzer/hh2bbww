@@ -85,7 +85,7 @@ def create_hbw_analysis(
         campaign_run2_2017_nano_v9.copy(),
         config_name="l17",
         config_id=1701,
-        limit_dataset_files=2,
+        limit_dataset_files=10,
         add_dataset_extensions=False,
     )
 

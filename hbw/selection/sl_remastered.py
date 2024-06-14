@@ -9,6 +9,7 @@ from typing import Tuple
 
 from columnflow.util import maybe_import
 from columnflow.selection import Selector, SelectionResult, selector
+from columnflow.columnar_util import set_ak_column
 
 from hbw.selection.common import masked_sorted_indices, pre_selection, post_selection, configure_selector
 from hbw.selection.lepton import lepton_definition
@@ -22,7 +23,7 @@ ak = maybe_import("awkward")
 
 @selector(
     uses={lepton_definition, "Electron.charge", "Muon.charge"},
-    produces={lepton_definition},
+    produces={lepton_definition, "Muonx_pt"},
 )
 def sl_lepton_selection(
         self: Selector,
@@ -32,6 +33,8 @@ def sl_lepton_selection(
 ) -> Tuple[ak.Array, SelectionResult]:
 
     events, lepton_results = self[lepton_definition](events, stats, **kwargs)
+
+    events = set_ak_column(events, "Muonx_pt", ak.fill_none(ak.firsts(events.Muon.pt),0))
 
     # tau veto
     lepton_results.steps["VetoTau"] = events.cutflow.n_veto_tau == 0
@@ -301,7 +304,7 @@ def sl1_init(self: Selector) -> None:
         pre_selection,
         vbf_jet_selection, sl_boosted_jet_selection,
         jet_selection, sl_lepton_selection,
-        post_selection,
+        post_selection, lepton_definition,
     }
 
     # define mapping from selector step to labels used in cutflow plots

@@ -572,6 +572,14 @@ def add_variables(config: od.Config) -> None:
             x_title=obj + " mass",
         )
 
+    config.add_variable(
+        name = "tight_muon_pt",
+        #expression = "Muonx_pt", #nice to know -> like to different variable
+        binning = (10, 0, 200),
+        x_title = r"Tight Muon $p_{T}$",
+        null_value = EMPTY_FLOAT,
+    )
+
     # MET
     config.add_variable(
         name="met_pt",
