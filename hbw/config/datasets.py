@@ -33,6 +33,7 @@ data_mu = {
         "data_mu_d",
         "data_mu_e",
         "data_mu_f",
+        "data_mu_trig",
     ],
     "2022preEE": [
         "data_mu_c",

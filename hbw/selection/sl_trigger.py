@@ -23,17 +23,17 @@ ak = maybe_import("awkward")
 @selector(
     uses=(four_vec({"Muon", "Electron", "Jet"})) | {
         "Muon.tightId", "Muon.pfRelIso03_all", "Electron.cutBased", "Electron.mvaIso_WP80",
-        "Jet.jetId", "GenPart.*",
+        "Jet.jetId",
         pre_selection, post_selection,
     },
-    produces={"trig_mu_pt", "trig_mu_eta", "trig_ele_pt", "trig_ele_eta", "trig_HT", "trig_mHH",
+    produces={"trig_mu_pt", "trig_mu_eta", "trig_ele_pt", "trig_ele_eta", "trig_HT",
               pre_selection, post_selection, 
               "Muon.is_tight", "Electron.is_tight",
               },
     trigger={
         "mu": [
             "Mu12_IsoVVL_PFHT150_PNetBTag_0p53","IsoMu24", "Mu50", 
-            "PFHT280_QuadPFJet30_PNet2BTagMean0p55", "PFMETNoMu110_PFMHTNoMu110_IDTight_FilterHF",
+            "PFHT280_QuadPFJet30_PNet2BTagMean0p55", "Mu15_IsoVVVL_PFHT450",
         ],
         "e": [
             "Ele14_eta2p5_WPTight_Gsf_HT200_PNetBTag_0p53", "Ele28_eta2p1_WPTight_Gsf_HT150", "Ele30_WPTight_Gsf",
@@ -81,36 +81,33 @@ def sl_trigger(
     events = set_ak_column(events, "trig_ele_pt", ak.fill_none(ak.firsts(trig_electron_clean.pt), -1))
     events = set_ak_column(events, "trig_ele_eta", ak.fill_none(ak.firsts(trig_electron_clean.eta), -100))
 
-    genparts = events.GenPart
-    gen_Ids = genparts.pdgId
-    #gen_muon_mask = abs(gen_Ids[events.GenPart.hasFlags("isHardProcess")]) == 13
-    #gen_electron_mask = abs(gen_Ids[events.GenPart.hasFlags("isHardProcess")]) == 11
+    if self.dataset_inst.is_data == False:
 
-    gen_muon_mask = abs(gen_Ids) == 13
-    gen_electron_mask = abs(gen_Ids) == 11
+        genparts = events.GenPart
+        gen_Ids = genparts.pdgId
+        #gen_muon_mask = abs(gen_Ids[events.GenPart.hasFlags("isHardProcess")]) == 13
+        #gen_electron_mask = abs(gen_Ids[events.GenPart.hasFlags("isHardProcess")]) == 11
 
-    gen_muons = genparts[gen_muon_mask]
-    gen_electrons = genparts[gen_electron_mask]
+        gen_muon_mask = abs(gen_Ids) == 13
+        gen_electron_mask = abs(gen_Ids) == 11
 
-    muon_mother_is_W = abs(genparts[gen_muons.genPartIdxMother].pdgId) == 24
-    electron_mother_is_W = abs(genparts[gen_electrons.genPartIdxMother].pdgId) == 24
+        gen_muons = genparts[gen_muon_mask]
+        gen_electrons = genparts[gen_electron_mask]
 
-    gen_mu_mask = ak.any(muon_mother_is_W, axis=1)
-    gen_ele_mask = ak.any(electron_mother_is_W, axis=1)
+        muon_mother_is_W = abs(genparts[gen_muons.genPartIdxMother].pdgId) == 24
+        electron_mother_is_W = abs(genparts[gen_electrons.genPartIdxMother].pdgId) == 24
 
-    results.steps["TriggerMuGenMask"] = gen_mu_mask
-    results.steps["TriggerEleGenMask"] = gen_ele_mask
+        gen_mu_mask = ak.any(muon_mother_is_W, axis=1)
+        gen_ele_mask = ak.any(electron_mother_is_W, axis=1)
+
+        results.steps["TrigMuGenMask"] = gen_mu_mask
+        results.steps["TrigEleGenMask"] = gen_ele_mask
 
     mu_presel_mask = ak.sum(trig_muon_clean.pt > 10, axis=1) >= 1
     ele_presel_mask = ak.sum(trig_electron_clean.pt > 10, axis=1) >= 1
 
-    results.steps["TriggerMuPreselMask"] = mu_presel_mask
-    results.steps["TriggerElePreselMask"] = ele_presel_mask
-    
-    trig_mu_mask = gen_mu_mask & mu_presel_mask
-    trig_ele_mask = gen_ele_mask & ele_presel_mask
-    results.steps["TrigMuMask"] = trig_mu_mask
-    results.steps["TrigEleMask"] = trig_ele_mask
+    results.steps["TrigMuPreselMask"] = mu_presel_mask
+    results.steps["TrigElePreselMask"] = ele_presel_mask
 
     # Jets
     trig_jet_mask_clean = (abs(events.Jet.eta) < 2.4) & (events.Jet.jetId == 6)
@@ -137,17 +134,18 @@ def sl_trigger(
     if self.config_inst.x("n_btag", 0) > 2:
         results.steps[f"nBjet{self.config_inst.x.n_btag}"] = events.cutflow.n_btag >= self.config_inst.x.n_btag
 
-    results.steps["SR_mu"] = (results.steps["TrigMuMask"]) & (results.steps["trig_jet"]) & (results.steps["nBjet1"])
-    results.steps["SR_ele"] = (results.steps["TrigEleMask"]) & (results.steps["trig_jet"]) & (results.steps["nBjet1"])
+    results.steps["SR_mu"] = (results.steps["TrigMuPreselMask"]) & (results.steps["trig_jet"]) & (results.steps["nBjet1"])
+    results.steps["SR_ele"] = (results.steps["TrigElePreselMask"]) & (results.steps["trig_jet"]) & (results.steps["nBjet1"])
     results.steps["SR"] = (results.steps["SR_mu"]) | (results.steps["SR_ele"])
 
-    # Higgs mass
-    gen_part_select = events.GenPart
-    higgs_mask = (gen_part_select.pdgId == 25) & (gen_part_select.hasFlags("isHardProcess"))
-    gen_h1 = gen_part_select[higgs_mask][:,0]
-    gen_h2 = gen_part_select[higgs_mask][:,1]
-    trig_mhh = (gen_h1 + gen_h2).mass
-    events = set_ak_column(events, "trig_mHH", trig_mhh)
+    if (self.dataset_inst.is_data==False): #everything is "is_hbw" --> or self.dataset_inst.x("is_hbw", True):
+        # Higgs mass
+        gen_part_select = events.GenPart
+        higgs_mask = (gen_part_select.pdgId == 25) & (gen_part_select.hasFlags("isHardProcess"))
+        gen_h1 = gen_part_select[higgs_mask][:,0]
+        gen_h2 = gen_part_select[higgs_mask][:,1]
+        trig_mhh = (gen_h1 + gen_h2).mass
+        events = set_ak_column(events, "trig_mHH", trig_mhh)
 
     #Horribly WONG TODO brute force adding masks to avoid errors
     results.event = mu_presel_mask
@@ -158,7 +156,7 @@ def sl_trigger(
     results.objects.Electron = DotDict({"Electron": ele_cleaning_mask})
     results.objects.Muon = DotDict({"Muon": mu_cleaning_mask})
     results.aux = DotDict({"jet_mask": trig_jet_mask_clean})
-    results.steps.all_but_bjet = (trig_mu_mask) & (trig_ele_mask)
+    results.steps.all_but_bjet = (mu_presel_mask) & (ele_presel_mask)
     jet_indices = masked_sorted_indices(trig_jet_mask_clean, events.Jet.pt)
     results.x.n_central_jets = ak.num(jet_indices)
     
@@ -177,6 +175,10 @@ def sl_trigger_init(self: Selector) -> None:
             self.uses.add(f"HLT.{column}")
 
     self.uses.add(f"Jet.{self.config_inst.x.btag_column}")
+
+    if (self.dataset_inst.is_data==False):
+        self.uses.add("GenPart.*")
+        self.produces.add("trig_mHH")
 
     self.uses.add(event_weights_to_normalize)
     self.produces.add(event_weights_to_normalize)

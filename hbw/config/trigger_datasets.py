@@ -37,6 +37,7 @@ def add_hbw_datasets(config: od.Config, campaign: od.Campaign):
         "data_mu_d",
         "data_mu_e",
         "data_mu_f",
+        "data_mu_trig",
         # TTbar
         "tt_sl_powheg",
         "tt_dl_powheg",
@@ -90,6 +91,7 @@ def add_hbw_datasets(config: od.Config, campaign: od.Campaign):
     if config.has_tag("is_l1nano"):
         dataset_names = [
             # DATA
+            "data_mu_trig",
             # no data with our trigger :(
             # TTbar
             "tt_sl_powheg",
