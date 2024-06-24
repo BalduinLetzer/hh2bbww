@@ -21,8 +21,9 @@ def add_hbw_datasets(config: od.Config, campaign: od.Campaign):
     get_custom_hh_datasets(campaign)
 
     # use custom get_dataset_lfns function
-    if config.has_tag("is_l1nano"): config.x.get_dataset_lfns = get_dataset_lfns_l1nano
-    else: config.x.get_dataset_lfns = get_dataset_lfns
+    #if config.has_tag("is_l1nano"): config.x.get_dataset_lfns = get_dataset_lfns_l1nano
+    #else: 
+    config.x.get_dataset_lfns = get_dataset_lfns
 
     # add datasets we need to study
     dataset_names = [
@@ -38,6 +39,7 @@ def add_hbw_datasets(config: od.Config, campaign: od.Campaign):
         "data_mu_e",
         "data_mu_f",
         "data_mu_trig",
+        "data_ele_trig",
         # TTbar
         "tt_sl_powheg",
         "tt_dl_powheg",
@@ -92,6 +94,7 @@ def add_hbw_datasets(config: od.Config, campaign: od.Campaign):
         dataset_names = [
             # DATA
             "data_mu_trig",
+            "data_ele_trig",
             # no data with our trigger :(
             # TTbar
             "tt_sl_powheg",
@@ -189,12 +192,18 @@ def configure_hbw_datasets(config: od.Config, limit_dataset_files: int | None = 
         if dataset.name.startswith(("st", "tt")):
             dataset.x.has_top = True
             dataset.add_tag("has_top")
+            dataset.add_tag("is_hbw")
+            dataset.x.is_hbw = False
         if dataset.name.startswith("tt"):
             dataset.x.is_ttbar = True
             dataset.add_tag("is_ttbar")
+            dataset.add_tag("is_hbw")
+            dataset.x.is_hbw = False
         if dataset.name.startswith("qcd"):
             dataset.x.is_qcd = True
             dataset.add_tag("is_qcd")
+            dataset.add_tag("is_hbw")
+            dataset.x.is_hbw = False
         if "HH" in dataset.name and "hbbhww" in dataset.name:
             # TODO: the is_hbw tag is used at times were we should ask for is_hbw_sl
             dataset.add_tag("is_hbw")
@@ -313,7 +322,7 @@ def get_dataset_lfns_l1nano(
     """
     Custom method to obtain custom NanoAOD datasets for l1 nano files from Finn
     """
-
+    print("WONG")
     print("dataset name:", dataset_inst.name)
     print("dataset_key:", dataset_key)
 

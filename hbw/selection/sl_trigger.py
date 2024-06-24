@@ -22,24 +22,15 @@ ak = maybe_import("awkward")
 
 @selector(
     uses=(four_vec({"Muon", "Electron", "Jet"})) | {
-        "Muon.tightId", "Muon.pfRelIso03_all", "Electron.cutBased", "Electron.mvaIso_WP80",
-        "Jet.jetId",
+        "Muon.tightId", "Muon.pfRelIso03_all", "Electron.cutBased", 
+        "Jet.jetId", "TrigObj.*",
         pre_selection, post_selection,
     },
     produces={"trig_mu_pt", "trig_mu_eta", "trig_ele_pt", "trig_ele_eta", "trig_HT",
               pre_selection, post_selection, 
               "Muon.is_tight", "Electron.is_tight",
               },
-    trigger={
-        "mu": [
-            "Mu12_IsoVVL_PFHT150_PNetBTag_0p53","IsoMu24", "Mu50", 
-            "PFHT280_QuadPFJet30_PNet2BTagMean0p55", "Mu15_IsoVVVL_PFHT450",
-        ],
-        "e": [
-            "Ele14_eta2p5_WPTight_Gsf_HT200_PNetBTag_0p53", "Ele28_eta2p1_WPTight_Gsf_HT150", "Ele30_WPTight_Gsf",
-            "PFHT280_QuadPFJet30_PNet2BTagMean0p55", "Ele15_IsoVVVL_PFHT450",
-        ],
-    },
+    #trigger={},
     b_tagger= "deepjet",
     btag_wp= "medium",
     exposed=True,
@@ -67,11 +58,18 @@ def sl_trigger(
         (trig_muon.tightId) &
         (trig_muon.pfRelIso03_all < 0.15)
     )
-    ele_cleaning_mask = (
-        (abs(trig_electron.eta) < 2.4) &
-        (trig_electron.cutBased == 4) &
-        (trig_electron.mvaIso_WP80)
-    )
+    if self.dataset_inst.x.is_ttbar == True:
+        ele_cleaning_mask = (
+            (abs(trig_electron.eta) < 2.4) &
+            (trig_electron.cutBased == 4) &
+            (trig_electron.mvaFall17V2Iso_WP80)
+        )
+    else:
+        ele_cleaning_mask = (
+            (abs(trig_electron.eta) < 2.4) &
+            (trig_electron.cutBased == 4) &
+            (trig_electron.mvaIso_WP80)
+        )
 
     trig_muon_clean = events.Muon[mu_cleaning_mask]
     trig_electron_clean = events.Electron[ele_cleaning_mask]
@@ -81,7 +79,31 @@ def sl_trigger(
     events = set_ak_column(events, "trig_ele_pt", ak.fill_none(ak.firsts(trig_electron_clean.pt), -1))
     events = set_ak_column(events, "trig_ele_eta", ak.fill_none(ak.firsts(trig_electron_clean.eta), -100))
 
-    if self.dataset_inst.is_data == False:
+    # match to HLT muon
+    hlt_muon_obj_mask = events.TrigObj.id == 13
+    hlt_electron_obj_mask = events.TrigObj.id == 11
+
+    hlt_muon_mask = hlt_muon_obj_mask & ((events.TrigObj.filterBits & (1<<3)) > 0) 
+    hlt_electron_mask = hlt_electron_obj_mask & ((events.TrigObj.filterBits & (1<<1)) > 0)
+    hlt_muon = events.TrigObj[hlt_muon_mask]
+    hlt_electron = events.TrigObj[hlt_electron_mask]
+
+    mu_combo = ak.cartesian({"offl": trig_muon_clean, "trigobj": hlt_muon}, nested=True)
+    e_combo = ak.cartesian({"offl": trig_electron_clean, "trigobj": hlt_electron}, nested=True)
+
+    off_mu, hlt_mu = ak.unzip(mu_combo)
+    off_ele, hlt_ele = ak.unzip(e_combo)
+
+    dR_mu = off_mu.delta_r(hlt_mu)
+    dR_ele = off_ele.delta_r(hlt_ele)
+
+    mindR_mu = ak.min(dR_mu, axis=-1)
+    mindR_ele = ak.min(dR_ele, axis=-1)
+
+    results.steps["TrigMuMatch"] = mindR_mu < 0.2
+    results.steps["TrigEleMatch"] = mindR_ele < 0.2
+
+    if self.dataset_inst.x.is_hbw:
 
         genparts = events.GenPart
         gen_Ids = genparts.pdgId
@@ -134,11 +156,15 @@ def sl_trigger(
     if self.config_inst.x("n_btag", 0) > 2:
         results.steps[f"nBjet{self.config_inst.x.n_btag}"] = events.cutflow.n_btag >= self.config_inst.x.n_btag
 
-    results.steps["SR_mu"] = (results.steps["TrigMuPreselMask"]) & (results.steps["trig_jet"]) & (results.steps["nBjet1"])
-    results.steps["SR_ele"] = (results.steps["TrigElePreselMask"]) & (results.steps["trig_jet"]) & (results.steps["nBjet1"])
+    results.steps["SR_mu"] = ((results.steps["TrigMuPreselMask"]) 
+                            & (results.steps["trig_jet"]) 
+                            & (results.steps["nBjet1"]))
+    results.steps["SR_ele"] = ((results.steps["TrigElePreselMask"]) 
+                               & (results.steps["trig_jet"]) 
+                               & (results.steps["nBjet1"]))
     results.steps["SR"] = (results.steps["SR_mu"]) | (results.steps["SR_ele"])
 
-    if (self.dataset_inst.is_data==False): #everything is "is_hbw" --> or self.dataset_inst.x("is_hbw", True):
+    if self.dataset_inst.x.is_hbw: #everything is "is_hbw" --> or self.dataset_inst.x("is_hbw", True):
         # Higgs mass
         gen_part_select = events.GenPart
         higgs_mask = (gen_part_select.pdgId == 25) & (gen_part_select.hasFlags("isHardProcess"))
@@ -148,7 +174,7 @@ def sl_trigger(
         events = set_ak_column(events, "trig_mHH", trig_mhh)
 
     #Horribly WONG TODO brute force adding masks to avoid errors
-    results.event = mu_presel_mask
+    results.event = mu_presel_mask | ele_presel_mask
     events = set_ak_column(events, "Muon.is_tight", mu_cleaning_mask)
     events = set_ak_column(events, "Electron.is_tight", ele_cleaning_mask)
     #results.steps.SR = mu_presel_mask
@@ -159,7 +185,6 @@ def sl_trigger(
     results.steps.all_but_bjet = (mu_presel_mask) & (ele_presel_mask)
     jet_indices = masked_sorted_indices(trig_jet_mask_clean, events.Jet.pt)
     results.x.n_central_jets = ak.num(jet_indices)
-    
 
     events, results = self[post_selection](events, results, stats, **kwargs)
 
@@ -170,15 +195,47 @@ def sl_trigger_init(self: Selector) -> None:
 
     configure_selector(self)
 
+    self.uses.add(f"Jet.{self.config_inst.x.btag_column}")
+
+    if (not self.dataset_inst.is_data) and (self.dataset_inst.x.is_hbw):
+        
+        self.config_inst.x.trigger = self.config_inst.x("trigger", {
+            "e": [
+                "Ele28_eta2p1_WPTight_Gsf_HT150", "Ele30_WPTight_Gsf",
+                "PFHT280_QuadPFJet30_PNet2BTagMean0p55", "Ele15_IsoVVVL_PFHT450",
+                "Ele14_eta2p5_IsoVVVL_Gsf_HT200_PNetBTag_0p53",
+                ],
+            "mu": [
+                "IsoMu24", "Mu50", 
+                "PFHT280_QuadPFJet30_PNet2BTagMean0p55", "Mu15_IsoVVVL_PFHT450",
+                "Mu12_IsoVVL_PFHT150_PNetBTag_0p53",
+                ],
+        })
+
+        self.uses.add("GenPart.*")
+        self.uses.add("Electron.mvaIso_WP80")
+        self.produces.add("trig_mHH")
+
+    if (not self.dataset_inst.is_data) and (self.dataset_inst.x.is_ttbar):
+
+        self.config_inst.x.trigger = self.config_inst.x("trigger", {
+            "e": [
+                "Ele28_eta2p1_WPTight_Gsf_HT150", "Ele35_WPTight_Gsf",
+                "PFHT300PT30_QuadPFJet_75_60_45_40", "Ele15_IsoVVVL_PFHT450",
+                ],
+            "mu": [
+                "IsoMu24", "Mu50", 
+                "PFHT300PT30_QuadPFJet_75_60_45_40", "Mu15_IsoVVVL_PFHT450",
+                ],
+        })
+
+        self.uses.add("Electron.mvaFall17V2Iso_WP80")
+
+        
+
     for trigger_columns in self.config_inst.x.trigger.values():
         for column in trigger_columns:
             self.uses.add(f"HLT.{column}")
-
-    self.uses.add(f"Jet.{self.config_inst.x.btag_column}")
-
-    if (self.dataset_inst.is_data==False):
-        self.uses.add("GenPart.*")
-        self.produces.add("trig_mHH")
 
     self.uses.add(event_weights_to_normalize)
     self.produces.add(event_weights_to_normalize)

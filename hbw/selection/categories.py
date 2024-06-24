@@ -177,15 +177,15 @@ def catid_fake(
     return events, mask
 
 
-@categorizer(uses={"MET.pt"}, call_force=True)
+@categorizer(uses={"PuppiMET.pt"}, call_force=True)
 def catid_highmet(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    mask = events.MET.pt >= 20
+    mask = events.PuppiMET.pt >= 20
     return events, mask
 
 
-@categorizer(uses={"MET.pt"}, call_force=True)
+@categorizer(uses={"PuppiMET.pt"}, call_force=True)
 def catid_lowmet(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    mask = events.MET.pt < 20
+    mask = events.PuppiMET.pt < 20
     return events, mask
 
 #

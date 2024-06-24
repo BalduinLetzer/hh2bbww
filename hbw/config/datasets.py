@@ -53,6 +53,7 @@ data_e = {
         "data_e_d",
         "data_e_e",
         "data_e_f",
+        "data_ele_trig",
     ],
 }
 
