@@ -602,3 +602,42 @@ def add_variables(config: od.Config) -> None:
         binning=(40, -3.2, 3.2),
         x_title=r"MET $\phi$",
     )
+
+    config.add_variable(
+        name="trig_mu_pt",
+        binning=(40, 0., 400.),
+        unit="GeV",
+        x_title=r"Leading muon $p_{T}$",
+    )
+
+    config.add_variable(
+        name="trig_ele_pt",
+        binning=(40, 0., 400.),
+        unit="GeV",
+        x_title=r"Leading electron $p_{T}$",
+    )
+
+    config.add_variable(
+        name="trig_HT",
+        binning=(40, 0., 1400.),
+        unit="GeV",
+        x_title=r"HT",
+    )
+
+    config.add_variable(
+        name="trig_mHH",
+        binning=(40, 0., 800.),
+        unit="GeV",
+        x_title=r"$m_{HH}$",
+    )
+
+    config.add_variable(
+        name="trig_bits",
+        binning=(20, -0.5, 19.5),
+        x_title="Trigger Id",
+    )
+    config.add_variable(
+        name="trig_bits_orth",
+        binning=(20, -0.5, 19.5),
+        x_title="Orthogonal Trigger Id",
+    )

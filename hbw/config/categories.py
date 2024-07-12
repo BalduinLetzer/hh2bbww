@@ -177,6 +177,35 @@ def add_jet_categories(config: od.Config) -> None:
         label="2b",
     )
 
+@call_once_on_config()
+def add_trigger_categories(config: od.Config) -> None:
+    # mc truth categories
+    cat_trig_mu = config.add_category(  # noqa
+        name="trig_mu",
+        id=1000,
+        selection="catid_trigger_mu",
+        label="Muon",
+    )
+    cat_trig_ele = config.add_category(  # noqa
+        name="trig_ele",
+        id=2000,
+        selection="catid_trigger_ele",
+        label="Electron",
+    )
+    # orthogonal categories
+    cat_trig_mu_orth = config.add_category(  # noqa
+        name="trig_mu_orth",
+        id=3000,
+        selection="catid_trigger_orth_mu",
+        label="Muon (orthogonal measurement)",
+    )
+    cat_trig_ele_orth = config.add_category(  # noqa
+        name="trig_ele_orth",
+        id=4000,
+        selection="catid_trigger_orth_ele",
+        label="Electron (orthogonal measurement)",
+    )
+
 
 @call_once_on_config()
 def add_categories_selection(config: od.Config) -> None:
@@ -192,6 +221,9 @@ def add_categories_selection(config: od.Config) -> None:
 
     # adds categories based on number of leptons
     add_lepton_categories(config)
+
+    # adds categories for triggerstudies
+    add_trigger_categories(config)
 
 
 def name_fn(root_cats):

@@ -299,6 +299,8 @@ def add_config(
     }[cfg.x.run]
     cfg.x.btag_wp = "medium"
 
+    cfg.x.btag_sf = ("deepJet_shape", cfg.x.btag_sf_jec_sources)
+
     # top pt reweighting parameters
     # https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting#TOP_PAG_corrections_based_on_dat?rev=31
     cfg.x.top_pt_reweighting_params = {
@@ -586,6 +588,7 @@ def add_config(
         "cf.MergeSelectionMasks": {
             "mc_weight", "normalization_weight", "process_id", "category_ids", "cutflow.*",
             "HbbJet.n_subjets", "HbbJet.n_separated_jets", "HbbJet.max_dr_ak4",
+            "trig_mu_pt", "trig_ele_pt", "trig_HT", "trig_mHH",
         },
     })
 
@@ -603,6 +606,8 @@ def add_config(
             "pu_weight*", "pdf_weight*",
             "murf_envelope_weight*", "mur_weight*", "muf_weight*",
             "btag_weight*",
+            # Trigger information
+            "HLT*",
         } | four_vec(  # Jets
             {"Jet", "Bjet", "Lightjet", "VBFJet"},
             {"btagDeepFlavB", "btagPNetB", "hadronFlavour", "qgl"},
@@ -688,5 +693,40 @@ def add_config(
     if cfg.has_tag("is_sl") and cfg.has_tag("is_resonant"):
         from hbw.config.sl_res import configure_sl_res
         configure_sl_res(cfg)
+
+    # set triggers for trigger studies
+    if year == 2017:
+        cfg.x.trigger = {
+            "e": ["Ele35_WPTight_Gsf"],
+            "mu": ["IsoMu27"],
+        }
+        cfg.x.ref_trigger = {
+            "e": "IsoMu27",
+            "mu": "Ele35_WPTight_Gsf",
+        }
+    elif year == 2018:
+        cfg.x.trigger = {
+            "e": "Ele32_WPTight_Gsf",
+            "mu": "IsoMu24",
+        }
+        cfg.x.ref_trigger = {
+            "e": "IsoMu24",
+            "mu": "Ele32_WPTight_Gsf",
+        }
+    elif year == 2022:
+        cfg.x.trigger = {
+                "e": [
+                    "Ele28_eta2p1_WPTight_Gsf_HT150", "Ele30_WPTight_Gsf", "Ele15_IsoVVVL_PFHT450",
+                    ],
+                "mu": [
+                    "IsoMu24", "Mu50", "Mu15_IsoVVVL_PFHT450",
+                    ],
+            }
+        cfg.x.ref_trigger = {
+                "e": "IsoMu24",
+                "mu": "Ele30_WPTight_Gsf",
+            }
+    else:
+        raise NotImplementedError(f"Trigger for year {year} is not defined.")
 
     return cfg
